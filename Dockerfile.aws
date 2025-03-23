@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1
+FROM debian:12.10 AS zipper
+
+RUN <<EOF
+    apt-get update
+    apt-get install -y zip
+EOF
+
+COPY example.js index.js
+RUN zip --verbose function.zip index.js
+
+FROM localstack/localstack:4.1.1
+WORKDIR /usr/src/app
+
+COPY --from=zipper function.zip .
+COPY init.aws.sh .
+CMD [ "sh", "init.aws.sh" ]
